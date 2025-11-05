@@ -5,6 +5,7 @@ import {
 	INodeTypeDescription,
 	NodeOperationError,
 	IHttpRequestOptions,
+	IHttpRequestMethods,
 	IDataObject,
 } from 'n8n-workflow';
 
@@ -395,7 +396,7 @@ export class SwaggerApi implements INodeType {
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				const method = this.getNodeParameter('method', i) as string;
+				const method = this.getNodeParameter('method', i) as IHttpRequestMethods;
 				let endpoint = this.getNodeParameter('endpoint', i) as string;
 				const pathParameters = this.getNodeParameter('pathParameters', i, {}) as IDataObject;
 				const queryParameters = this.getNodeParameter('queryParameters', i, {}) as IDataObject;
