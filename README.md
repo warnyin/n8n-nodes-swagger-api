@@ -1,10 +1,10 @@
 <div align="center">
 
-# 🔌 n8n-nodes-swagger-api
+# 🔌 @warnyin/n8n-nodes-swagger-api
 
 ### Seamlessly integrate with REST APIs using Swagger/OpenAPI specifications in n8n
 
-[![npm version](https://img.shields.io/npm/v/n8n-nodes-swagger-api.svg?style=flat-square)](https://www.npmjs.com/package/n8n-nodes-swagger-api)
+[![npm version](https://img.shields.io/npm/v/@warnyin/n8n-nodes-swagger-api.svg?style=flat-square)](https://www.npmjs.com/package/@warnyin/n8n-nodes-swagger-api)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![n8n](https://img.shields.io/badge/n8n-Community%20Node-00D4AA?style=flat-square&logo=n8n)](https://n8n.io)
 [![GitHub stars](https://img.shields.io/github/stars/warnyin/n8n-nodes-swagger-api?style=flat-square)](https://github.com/warnyin/n8n-nodes-swagger-api/stargazers)
@@ -80,7 +80,7 @@ Perfect for integrating with enterprise APIs, microservices, and third-party pla
 1. Open your n8n instance
 2. Navigate to **Settings** → **Community Nodes**
 3. Click **Install**
-4. Enter: `n8n-nodes-swagger-api`
+4. Enter: `@warnyin/n8n-nodes-swagger-api`
 5. Agree to the risks and click **Install**
 
 ### Option 2: Manual Installation
@@ -114,7 +114,7 @@ npm run build
 # Link to n8n
 npm link
 cd ~/.n8n
-npm link n8n-nodes-swagger-api
+npm link @warnyin/n8n-nodes-swagger-api
 
 # Restart n8n
 ```
@@ -399,7 +399,7 @@ npm run build
 ### Project Structure
 
 ```
-n8n-nodes-swagger-api/
+@warnyin/n8n-nodes-swagger-api/
 ├── credentials/
 │   └── SwaggerApiCredentials.credentials.ts  # Credential type definition
 ├── nodes/
@@ -495,6 +495,6 @@ Give a ⭐️ if this project helped you!
 
 Made with ❤️ for the n8n community
 
-**[⬆ Back to Top](#-n8n-nodes-swagger-api)**
+**[⬆ Back to Top](#-warnyinn8n-nodes-swagger-api)**
 
 </div>
