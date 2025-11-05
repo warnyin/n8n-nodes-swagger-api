@@ -184,7 +184,7 @@ export class SwaggerApi implements INodeType {
       {
         displayName: "Operation Details",
         name: "operationDetails",
-        type: "options",
+        type: "notice",
         displayOptions: {
           show: {
             "@version": [1],
@@ -193,12 +193,13 @@ export class SwaggerApi implements INodeType {
             operation: [""],
           },
         },
-        default: "",
+        default:
+          "ℹ️ Operation selected! Check the operation dropdown above to see the complete endpoint details including method, path, description, and operation ID.",
         typeOptions: {
-          loadOptionsDependsOn: ["operation"],
-          loadOptionsMethod: "getOperationInfo",
+          theme: "info",
         },
-        description: "Details of the selected operation",
+        description:
+          "This section shows when an operation is selected. Full endpoint details are visible in the operation dropdown description.",
       },
       // Path Parameters - dynamically generated
       {
@@ -598,53 +599,6 @@ export class SwaggerApi implements INodeType {
       },
     },
     loadOptions: {
-      async getOperationInfo(this: ILoadOptionsFunctions): Promise<any[]> {
-        try {
-          const operationParam = this.getCurrentNodeParameter(
-            "operation"
-          ) as any;
-
-          if (!operationParam || !operationParam.value) {
-            return [
-              {
-                name: "Select an operation above to see endpoint details",
-                value: "",
-              },
-            ];
-          }
-
-          const operationInfo: OperationInfo = JSON.parse(operationParam.value);
-          const details = `🔗 ${operationInfo.method} ${operationInfo.path}`;
-
-          // Create a comprehensive description
-          let description = details;
-          if (operationInfo.summary) {
-            description += `\n📝 ${operationInfo.summary}`;
-          }
-          if (operationInfo.description) {
-            description += `\n📄 ${operationInfo.description}`;
-          }
-          if (operationInfo.operationId) {
-            description += `\n🆔 Operation ID: ${operationInfo.operationId}`;
-          }
-
-          return [
-            {
-              name: description,
-              value: details,
-            },
-          ];
-        } catch (error) {
-          console.error("Error getting operation info:", error);
-          return [
-            {
-              name: "Error: Select a valid operation",
-              value: "",
-            },
-          ];
-        }
-      },
-
       async getPathParameters(this: ILoadOptionsFunctions): Promise<any[]> {
         try {
           const operationParam = this.getCurrentNodeParameter(
