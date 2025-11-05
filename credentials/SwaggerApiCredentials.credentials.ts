@@ -51,8 +51,11 @@ export class SwaggerApiCredentials implements ICredentialType {
 				},
 			},
 			default: '{}',
-			description: 'The Swagger/OpenAPI specification as JSON',
+			description: 'The Swagger/OpenAPI specification as JSON. Must be a valid Swagger 2.x or OpenAPI 3.x specification.',
+			placeholder: '{"openapi": "3.0.0", "info": {...}, "paths": {...}}',
 			required: true,
+			validateType: 'object',
+			ignoreValidationDuringExecution: true,
 		},
 		{
 			displayName: 'Base URL',

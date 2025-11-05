@@ -1,6 +1,6 @@
 {
   "name": "@warnyin/n8n-nodes-swagger-api",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "n8n node for integrating with REST APIs using Swagger/OpenAPI specifications",
   "license": "MIT",
   "author": {
@@ -26,7 +26,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && npm run copy",
-    "copy": "copyfiles -u 1 \"nodes/**/*.{png,svg,json}\" dist/",
+    "copy": "copyfiles -u 0 \"nodes/**/*.{png,svg,json}\" dist/",
     "dev": "tsc --watch",
     "format": "prettier nodes credentials --write",
     "lint": "eslint nodes credentials --ext .ts",
