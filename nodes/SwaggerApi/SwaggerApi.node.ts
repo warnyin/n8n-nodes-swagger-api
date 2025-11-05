@@ -528,7 +528,7 @@ export class SwaggerApi implements INodeType {
 
             const value = JSON.stringify(operationInfo);
             const operationEndpoint = `${method.toUpperCase()} ${path}`;
-            const displayName = operation.summary 
+            const displayName = operation.summary
               ? `${operation.summary} (${operationEndpoint})`
               : operationEndpoint;
             const description = [
@@ -547,8 +547,11 @@ export class SwaggerApi implements INodeType {
             };
 
             // Group by first tag
-            const primaryTag =
-              (operation.tags && operation.tags[0]) || "Untagged";
+            const primaryTag = 
+              (operation.tags && operation.tags.length > 0 && operation.tags[0]) 
+              ? operation.tags[0].trim() 
+              : "Untagged";
+            
             if (!groupedByTag[primaryTag]) {
               groupedByTag[primaryTag] = [];
             }
@@ -557,20 +560,24 @@ export class SwaggerApi implements INodeType {
         }
 
         // Flatten grouped operations while preserving tag structure
-        const tags = Object.keys(groupedByTag).sort((a, b) =>
-          a.localeCompare(b)
-        );
+        const tags = Object.keys(groupedByTag).sort((a, b) => {
+          // Sort with "Untagged" at the end
+          if (a === "Untagged") return 1;
+          if (b === "Untagged") return -1;
+          return a.localeCompare(b);
+        });
+        
         for (const tag of tags) {
-          // Add tag header
-          const tagOperations = [
-            {
-              name: `--- ${tag} ---`,
-              value: "",
-              description: `Operations in ${tag} category`,
-            },
-            ...groupedByTag[tag],
-          ];
-          operations.push(...tagOperations);
+          // Add tag header only if there are multiple tags and more than 1 operation per tag
+          if (tags.length > 1 || groupedByTag[tag].length > 3) {
+            operations.push({
+              name: `🏷️ --- ${tag} ---`,
+              value: `__tag_header_${tag}__`,
+              description: `${groupedByTag[tag].length} operations in ${tag} category`,
+            });
+          }
+          // Add operations for this tag
+          operations.push(...groupedByTag[tag]);
         }
 
         return {
@@ -813,6 +820,14 @@ export class SwaggerApi implements INodeType {
         // Get selected operation
         const operationParam = this.getNodeParameter("operation", i) as any;
         let operationInfo: OperationInfo;
+
+        // Check if it's a tag header (skip execution)
+        if (typeof operationParam === "string" && operationParam.startsWith("__tag_header_")) {
+          throw new NodeOperationError(this.getNode(), "Please select an actual operation, not a tag header");
+        }
+        if (operationParam && typeof operationParam.value === "string" && operationParam.value.startsWith("__tag_header_")) {
+          throw new NodeOperationError(this.getNode(), "Please select an actual operation, not a tag header");
+        }
 
         if (typeof operationParam === "string") {
           operationInfo = JSON.parse(operationParam);
