@@ -547,11 +547,11 @@ export class SwaggerApi implements INodeType {
             };
 
             // Group by first tag
-            const primaryTag = 
-              (operation.tags && operation.tags.length > 0 && operation.tags[0]) 
-              ? operation.tags[0].trim() 
-              : "Untagged";
-            
+            const primaryTag =
+              operation.tags && operation.tags.length > 0 && operation.tags[0]
+                ? operation.tags[0].trim()
+                : "Untagged";
+
             if (!groupedByTag[primaryTag]) {
               groupedByTag[primaryTag] = [];
             }
@@ -566,7 +566,7 @@ export class SwaggerApi implements INodeType {
           if (b === "Untagged") return -1;
           return a.localeCompare(b);
         });
-        
+
         for (const tag of tags) {
           // Add tag header only if there are multiple tags and more than 1 operation per tag
           if (tags.length > 1 || groupedByTag[tag].length > 3) {
@@ -822,11 +822,24 @@ export class SwaggerApi implements INodeType {
         let operationInfo: OperationInfo;
 
         // Check if it's a tag header (skip execution)
-        if (typeof operationParam === "string" && operationParam.startsWith("__tag_header_")) {
-          throw new NodeOperationError(this.getNode(), "Please select an actual operation, not a tag header");
+        if (
+          typeof operationParam === "string" &&
+          operationParam.startsWith("__tag_header_")
+        ) {
+          throw new NodeOperationError(
+            this.getNode(),
+            "Please select an actual operation, not a tag header"
+          );
         }
-        if (operationParam && typeof operationParam.value === "string" && operationParam.value.startsWith("__tag_header_")) {
-          throw new NodeOperationError(this.getNode(), "Please select an actual operation, not a tag header");
+        if (
+          operationParam &&
+          typeof operationParam.value === "string" &&
+          operationParam.value.startsWith("__tag_header_")
+        ) {
+          throw new NodeOperationError(
+            this.getNode(),
+            "Please select an actual operation, not a tag header"
+          );
         }
 
         if (typeof operationParam === "string") {
