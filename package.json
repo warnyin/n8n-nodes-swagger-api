@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-swagger-api",
+  "name": "@warnyin/n8n-nodes-swagger-api",
   "version": "1.0.0",
   "description": "n8n node for integrating with REST APIs using Swagger/OpenAPI specifications",
   "license": "MIT",
