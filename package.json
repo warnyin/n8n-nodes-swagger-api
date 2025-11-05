@@ -1,6 +1,6 @@
 {
   "name": "@warnyin/n8n-nodes-swagger-api",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "n8n node for integrating with REST APIs using Swagger/OpenAPI specifications with service discovery and auto-generated inputs",
   "license": "MIT",
   "author": {
