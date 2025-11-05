@@ -184,7 +184,7 @@ export class SwaggerApi implements INodeType {
       {
         displayName: "Operation Details",
         name: "operationDetails",
-        type: "notice",
+        type: "options",
         displayOptions: {
           show: {
             "@version": [1],
@@ -195,8 +195,10 @@ export class SwaggerApi implements INodeType {
         },
         default: "",
         typeOptions: {
-          theme: "info",
+          loadOptionsDependsOn: ["operation"],
+          loadOptionsMethod: "getOperationInfo",
         },
+        description: "Details of the selected operation",
       },
       // Path Parameters - dynamically generated
       {
@@ -213,6 +215,9 @@ export class SwaggerApi implements INodeType {
           show: {
             "@version": [1],
           },
+          hide: {
+            operation: [""],
+          },
         },
         options: [
           {
@@ -222,10 +227,26 @@ export class SwaggerApi implements INodeType {
               {
                 displayName: "Name",
                 name: "name",
-                type: "string",
+                type: "options",
                 default: "",
                 description: "Parameter name",
                 required: true,
+                typeOptions: {
+                  loadOptionsDependsOn: ["operation"],
+                  loadOptionsMethod: "getPathParameters",
+                },
+              },
+              {
+                displayName: "Custom Name",
+                name: "customName",
+                type: "string",
+                default: "",
+                description: "Enter custom parameter name",
+                displayOptions: {
+                  show: {
+                    name: ["custom"],
+                  },
+                },
               },
               {
                 displayName: "Value",
@@ -250,6 +271,14 @@ export class SwaggerApi implements INodeType {
         default: {},
         placeholder: "Add Query Parameter",
         description: "Query parameters for the request",
+        displayOptions: {
+          show: {
+            "@version": [1],
+          },
+          hide: {
+            operation: [""],
+          },
+        },
         options: [
           {
             name: "parameter",
@@ -258,10 +287,26 @@ export class SwaggerApi implements INodeType {
               {
                 displayName: "Name",
                 name: "name",
-                type: "string",
+                type: "options",
                 default: "",
                 description: "Query parameter name",
                 required: true,
+                typeOptions: {
+                  loadOptionsDependsOn: ["operation"],
+                  loadOptionsMethod: "getQueryParameters",
+                },
+              },
+              {
+                displayName: "Custom Name",
+                name: "customName",
+                type: "string",
+                default: "",
+                description: "Enter custom query parameter name",
+                displayOptions: {
+                  show: {
+                    name: ["custom"],
+                  },
+                },
               },
               {
                 displayName: "Value",
@@ -504,12 +549,12 @@ export class SwaggerApi implements INodeType {
             const value = JSON.stringify(operationInfo);
             const displayName =
               operation.summary || `${method.toUpperCase()} ${path}`;
+            const operationDetails = `${method.toUpperCase()} ${path}`;
             const description = [
-              operation.description,
-              `Endpoint: ${method.toUpperCase()} ${path}`,
-              operation.operationId
-                ? `Operation ID: ${operation.operationId}`
-                : "",
+              `🔗 ${operationDetails}`,
+              operation.summary ? `📝 ${operation.summary}` : "",
+              operation.description ? `ℹ️ ${operation.description}` : "",
+              operation.operationId ? `🆔 ${operation.operationId}` : "",
             ]
               .filter(Boolean)
               .join("\n");
@@ -550,6 +595,224 @@ export class SwaggerApi implements INodeType {
         return {
           results: operations,
         };
+      },
+    },
+    loadOptions: {
+      async getOperationInfo(this: ILoadOptionsFunctions): Promise<any[]> {
+        try {
+          const operationParam = this.getCurrentNodeParameter(
+            "operation"
+          ) as any;
+
+          if (!operationParam || !operationParam.value) {
+            return [
+              {
+                name: "Select an operation above to see endpoint details",
+                value: "",
+              },
+            ];
+          }
+
+          const operationInfo: OperationInfo = JSON.parse(operationParam.value);
+          const details = `🔗 ${operationInfo.method} ${operationInfo.path}`;
+
+          // Create a comprehensive description
+          let description = details;
+          if (operationInfo.summary) {
+            description += `\n📝 ${operationInfo.summary}`;
+          }
+          if (operationInfo.description) {
+            description += `\n📄 ${operationInfo.description}`;
+          }
+          if (operationInfo.operationId) {
+            description += `\n🆔 Operation ID: ${operationInfo.operationId}`;
+          }
+
+          return [
+            {
+              name: description,
+              value: details,
+            },
+          ];
+        } catch (error) {
+          console.error("Error getting operation info:", error);
+          return [
+            {
+              name: "Error: Select a valid operation",
+              value: "",
+            },
+          ];
+        }
+      },
+
+      async getPathParameters(this: ILoadOptionsFunctions): Promise<any[]> {
+        try {
+          const operationParam = this.getCurrentNodeParameter(
+            "operation"
+          ) as any;
+
+          if (!operationParam || !operationParam.value) {
+            return [
+              {
+                name: "Select an operation first",
+                value: "",
+              },
+            ];
+          }
+
+          const operationInfo: OperationInfo = JSON.parse(operationParam.value);
+
+          // Extract path parameters from the operation
+          const pathParameters: any[] = [];
+
+          // First, extract from URL path (parameters in curly braces)
+          const pathParams = operationInfo.path.match(/{([^}]+)}/g);
+          if (pathParams) {
+            pathParams.forEach((param) => {
+              const paramName = param.slice(1, -1); // Remove { }
+              pathParameters.push({
+                name: `${paramName} (from path)`,
+                value: paramName,
+              });
+            });
+          }
+
+          // Then, add parameters defined in the operation's parameters array
+          if (
+            operationInfo.parameters &&
+            Array.isArray(operationInfo.parameters)
+          ) {
+            operationInfo.parameters.forEach((param: any) => {
+              if (param.in === "path") {
+                const existingParam = pathParameters.find(
+                  (p) => p.value === param.name
+                );
+                if (!existingParam) {
+                  const description = param.description
+                    ? ` - ${param.description}`
+                    : "";
+                  const required = param.required
+                    ? " (required)"
+                    : " (optional)";
+                  pathParameters.push({
+                    name: `${param.name}${required}${description}`,
+                    value: param.name,
+                  });
+                } else {
+                  // Update existing parameter with more info
+                  const description = param.description
+                    ? ` - ${param.description}`
+                    : "";
+                  const required = param.required
+                    ? " (required)"
+                    : " (optional)";
+                  existingParam.name = `${param.name}${required}${description}`;
+                }
+              }
+            });
+          }
+
+          if (pathParameters.length === 0) {
+            return [
+              {
+                name: "No path parameters found for this operation",
+                value: "",
+              },
+              {
+                name: "Custom parameter (type manually)",
+                value: "custom",
+              },
+            ];
+          }
+
+          // Add option for custom parameters
+          pathParameters.push({
+            name: "Custom parameter (type manually)",
+            value: "custom",
+          });
+
+          return pathParameters;
+        } catch (error) {
+          console.error("Error getting path parameters:", error);
+          return [
+            {
+              name: "Error: Could not load path parameters",
+              value: "",
+            },
+          ];
+        }
+      },
+
+      async getQueryParameters(this: ILoadOptionsFunctions): Promise<any[]> {
+        try {
+          const operationParam = this.getCurrentNodeParameter(
+            "operation"
+          ) as any;
+
+          if (!operationParam || !operationParam.value) {
+            return [
+              {
+                name: "Select an operation first",
+                value: "",
+              },
+            ];
+          }
+
+          const operationInfo: OperationInfo = JSON.parse(operationParam.value);
+
+          // Extract query parameters from the operation's parameters array
+          const queryParameters: any[] = [];
+
+          if (
+            operationInfo.parameters &&
+            Array.isArray(operationInfo.parameters)
+          ) {
+            for (const param of operationInfo.parameters) {
+              if (param.in === "query") {
+                const description = param.description
+                  ? ` - ${param.description}`
+                  : "";
+                const required = param.required ? " (required)" : " (optional)";
+                const type = param.type || param.schema?.type || "";
+                const typeInfo = type ? ` [${type}]` : "";
+
+                queryParameters.push({
+                  name: `${param.name}${required}${typeInfo}${description}`,
+                  value: param.name,
+                });
+              }
+            }
+          }
+
+          if (queryParameters.length === 0) {
+            return [
+              {
+                name: "No query parameters found for this operation",
+                value: "",
+              },
+              {
+                name: "Custom parameter (type manually)",
+                value: "custom",
+              },
+            ];
+          }
+
+          // Add option for custom parameters
+          queryParameters.push({
+            name: "Custom parameter (type manually)",
+            value: "custom",
+          });
+
+          return queryParameters;
+        } catch (error) {
+          console.error("Error getting query parameters:", error);
+          return [
+            {
+              name: "Error: Could not load query parameters",
+              value: "",
+            },
+          ];
+        }
       },
     },
   };
@@ -645,13 +908,19 @@ export class SwaggerApi implements INodeType {
         if (pathParameters.parameter) {
           const params = pathParameters.parameter as Array<{
             name: string;
+            customName?: string;
             value: string;
           }>;
           for (const param of params) {
-            endpoint = endpoint.replace(
-              `{${param.name}}`,
-              encodeURIComponent(param.value)
-            );
+            // Use customName if name is "custom", otherwise use name
+            const paramName =
+              param.name === "custom" ? param.customName : param.name;
+            if (paramName) {
+              endpoint = endpoint.replace(
+                `{${paramName}}`,
+                encodeURIComponent(param.value)
+              );
+            }
           }
         }
 
@@ -662,13 +931,18 @@ export class SwaggerApi implements INodeType {
         if (queryParameters.parameter) {
           const params = queryParameters.parameter as Array<{
             name: string;
+            customName?: string;
             value: string;
           }>;
           const queryString = params
-            .map(
-              (p) =>
-                `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`
-            )
+            .map((p) => {
+              // Use customName if name is "custom", otherwise use name
+              const paramName = p.name === "custom" ? p.customName : p.name;
+              return paramName
+                ? `${encodeURIComponent(paramName)}=${encodeURIComponent(p.value)}`
+                : null;
+            })
+            .filter(Boolean)
             .join("&");
           if (queryString) {
             url += `?${queryString}`;
