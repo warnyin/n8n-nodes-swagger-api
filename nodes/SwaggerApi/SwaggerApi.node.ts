@@ -184,7 +184,7 @@ export class SwaggerApi implements INodeType {
       {
         displayName: "Operation Details",
         name: "operationDetails",
-        type: "notice",
+        type: "options",
         displayOptions: {
           show: {
             "@version": [1],
@@ -193,13 +193,12 @@ export class SwaggerApi implements INodeType {
             operation: [""],
           },
         },
-        default:
-          "ℹ️ Operation selected! Check the operation dropdown above to see the complete endpoint details including method, path, description, and operation ID.",
+        default: "",
+        description: "Information about the selected operation",
         typeOptions: {
-          theme: "info",
+          loadOptionsDependsOn: ["operation"],
+          loadOptionsMethod: "getOperationInfo",
         },
-        description:
-          "This section shows when an operation is selected. Full endpoint details are visible in the operation dropdown description.",
       },
       // Path Parameters - dynamically generated
       {
@@ -599,6 +598,58 @@ export class SwaggerApi implements INodeType {
       },
     },
     loadOptions: {
+      async getOperationInfo(this: ILoadOptionsFunctions): Promise<any[]> {
+        try {
+          const operationParam = this.getCurrentNodeParameter("operation") as any;
+          
+          if (!operationParam || !operationParam.value) {
+            return [{
+              name: "Select an operation above to see endpoint details",
+              value: "",
+            }];
+          }
+
+          const operationInfo: OperationInfo = JSON.parse(operationParam.value);
+          
+          // Create detailed operation information
+          const details = `🔗 ${operationInfo.method} ${operationInfo.path}`;
+          let description = details;
+          
+          if (operationInfo.summary) {
+            description += `\n📝 Summary: ${operationInfo.summary}`;
+          }
+          if (operationInfo.description) {
+            description += `\n📄 Description: ${operationInfo.description}`;
+          }
+          if (operationInfo.operationId) {
+            description += `\n🆔 Operation ID: ${operationInfo.operationId}`;
+          }
+          
+          // Add parameter info
+          if (operationInfo.parameters && operationInfo.parameters.length > 0) {
+            const pathParams = operationInfo.parameters.filter((p: any) => p.in === 'path');
+            const queryParams = operationInfo.parameters.filter((p: any) => p.in === 'query');
+            
+            if (pathParams.length > 0) {
+              description += `\n🔗 Path Parameters: ${pathParams.map((p: any) => p.name).join(', ')}`;
+            }
+            if (queryParams.length > 0) {
+              description += `\n❓ Query Parameters: ${queryParams.map((p: any) => p.name).join(', ')}`;
+            }
+          }
+          
+          return [{
+            name: description,
+            value: details,
+          }];
+        } catch (error) {
+          return [{
+            name: "Error: Could not load operation details",
+            value: "",
+          }];
+        }
+      },
+      
       async getPathParameters(this: ILoadOptionsFunctions): Promise<any[]> {
         try {
           const operationParam = this.getCurrentNodeParameter(
